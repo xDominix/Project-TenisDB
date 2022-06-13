@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block content %}
+
+    <div>
+      <span class="account-heading">Upcoming tournaments</span>
+      <a class="to-right " href="{{ url_for('tournament_form') }}">Add Tournament</a>
+    </div>
+
+    <table class="table">
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">Id</th>
+          <th scope="col">Club Id</th>
+          <th scope="col">Max Players</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tournament in tournaments %}
+<!--            <tr class="bg-danger"> <th scope="row">1</th> <th scope="row">{{hour}}</th> <th scope="row">taken</th> </tr>-->
+            <tr> </th> <th scope="row">{{tournament[0]}}</th> <th scope="row">{{tournament[1]}}</th> <th scope="row">{{tournament[2]}}</th></tr>
+
+        {% endfor %}
+      </tbody>
+    </table>
+{% endblock content %}
