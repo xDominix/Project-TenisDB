@@ -186,3 +186,19 @@ def tournament_form():
     return render_template('tournament_form.html', title='Tournament_form', form=form)
 
 
+@app.route("/tournament_details/<id_t>", methods=['GET', 'POST'])
+def tournament_details(id_t):
+    tournaments1 = db.session.query(Tournament).all()
+    tournament= tournaments1[int(id_t)-1]
+    print(tournament)
+    # tournament = None
+    # for tournament2 in tournaments1:
+    #     if tournament2.id == id_t:
+    #         print("hi")
+    #         tournament = tournament2
+    #         break
+    #
+    # print(tournament)
+
+    return render_template('tournament_details.html', title='Tournament_details', tournament=tournament)
+
