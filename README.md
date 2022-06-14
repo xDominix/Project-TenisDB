@@ -11,7 +11,7 @@ FUNKCJONALNOŚĆ:
 -proponowanie przez system dobrego rywala (po umiejętnościach graczy),
 -organizowanie turnieji - ukreślanie puli nagród, wymaganych umiejętności graczy,
 
-TECHNOLOGIE: 
+TECHNOLOGIE:
 -Flask,
 -SQLite, 
 -Python
