@@ -32,13 +32,14 @@ class User(db.Model, UserMixin):
 
 class Court(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    club_id = db.Column(db.Integer, db.ForeignKey('club.id'))
     court_number = db.Column(db.Integer, nullable=False)
     surface = db.Column(db.String(20), nullable=False)
     lights = db.Column(db.Boolean, nullable=False)
     roof = db.Column(db.Boolean, nullable=False)
 
     def __repr__(self):
-        return f"Court('{self.court_number}', '{self.surface}', '{self.lights}', '{self.roof}')"
+        return f"Court('{self.id}', {self.court_number}', {self.club_id}', '{self.surface}', '{self.lights}', '{self.roof}')"
 
 
 class Reservation(db.Model):
@@ -47,7 +48,7 @@ class Reservation(db.Model):
     court_id = db.Column(db.Integer, db.ForeignKey('court.id'))
     date_from = db.Column(db.DateTime, nullable=False)
     date_to = db.Column(db.DateTime, nullable=False)
-    tournament_id = db.Column(db.Integer, nullable=True)
+    tournament_id = db.Column(db.Integer, db.ForeignKey('tournament.id'))
 
 
 class Tournament(db.Model):
@@ -71,6 +72,10 @@ class Club(db.Model):
     logo = db.Column(db.String(20), nullable=True, default='default.jpg')
     location = db.Column(db.String(20), nullable=False)
     about = db.Column(db.String(20), nullable=True)
+
+    def __repr__(self):
+        return f"Club('{self.id}', '{self.name}', '{self.logo}', '{self.location}', " \
+               f"{self.about})"
 
 
 class TournamentUser(db.Model):
