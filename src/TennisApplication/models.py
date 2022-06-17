@@ -13,7 +13,6 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(20), unique=True, nullable=False)
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
     password = db.Column(db.String(30), nullable=False)
-
     first_name = db.Column(db.String(20), nullable=False)
     last_name = db.Column(db.String(20), nullable=False)
     birth_date = db.Column(db.Date, nullable=False)
@@ -30,16 +29,21 @@ class User(db.Model, UserMixin):
         return self.id
 
 
+class Surface(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(20), nullable=False, unique=True)
+
+
 class Court(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     club_id = db.Column(db.Integer, db.ForeignKey('club.id'))
     court_number = db.Column(db.Integer, nullable=False)
-    surface = db.Column(db.String(20), nullable=False)
+    surface_id = db.Column(db.Integer, db.ForeignKey('surface.id'))
     lights = db.Column(db.Boolean, nullable=False)
     roof = db.Column(db.Boolean, nullable=False)
 
     def __repr__(self):
-        return f"Court('{self.id}', {self.court_number}', {self.club_id}', '{self.surface}', '{self.lights}', '{self.roof}')"
+        return f"Court('{self.id}', {self.court_number}', {self.club_id}', '{self.lights}', '{self.roof}')"
 
 
 class Reservation(db.Model):
@@ -49,6 +53,9 @@ class Reservation(db.Model):
     date_from = db.Column(db.DateTime, nullable=False)
     date_to = db.Column(db.DateTime, nullable=False)
     tournament_id = db.Column(db.Integer, db.ForeignKey('tournament.id'))
+
+    def __repr__(self):
+        return f"Reservation('{self.id}', {self.user_id}', {self.court_id}', '{self.date_from}', '{self.date_to}')"
 
 
 class Tournament(db.Model):

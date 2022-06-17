@@ -20,31 +20,23 @@
                     {% endif %}
                 </div>
                 <div class="form-group">
-                    {{ form.club_id.label(class="form-control-label") }}
-                    {% if form.club_id.errors %}
-                        {{ form.club_id(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.club_id.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.club_id(class="form-control form-control-lg") }}
-                    {% endif %}
+                    {{ form.club_name.label(class="form-control-label") }}
+                    <select name="club_name" class="input-group">
+                        {% for club_name in club_names %}
+                             <option value="{{club_name}}">{{club_name}}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="form-group">
-                    {{ form.court_number.label(class="form-control-label") }}
-                    {% if form.court_number.errors %}
-                        {{ form.court_number(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.court_number.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.court_number(class="form-control form-control-lg") }}
-                    {% endif %}
+                    {{ form.surface.label(class="form-control-label") }}
+                    <select name="surface_name" class="input-group">
+                        <option value="all">all</option>
+                        {% for surface_name in surface_names %}
+                             <option value="{{surface_name}}">{{surface_name}}</option>
+                        {% endfor %}
+                    </select>
                 </div>
+
             </fieldset>
             <div class="form-group">
                 {{ form.filter(class="btn btn-outline-info") }}
@@ -53,35 +45,44 @@
     </div>
 
     {% if show %}
-        <table class="table">
-          <thead class="thead-dark">
-            <tr>
-              <th scope="col">Club Id</th>
-              <th scope="col">Court Number</th>
-              <th scope="col">Hour</th>
-              <th scope="col">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for hour in range(8, 23) %}
-              {% if hour in reservations %}
-                <tr class="bg-danger">
-                    <th> {{club_id}} </th>
-                    <th> {{court_number}} </th>
-                    <th scope="row">{{hour}} </th>
-                    <th scope="row">taken </th>
+        {% for court_reservations in courts_reservations %}
+          {% set court, surface_name, reservations = court_reservations %}
+          <table class="table">
+              <thead class="thead-dark mt-3">
+                <tr>
+                  <th scope="col">Court Number</th>
+                  <th scope="col">Surface</th>
+                  <th scope="col">Roof</th>
+                  <th scope="col">Lights</th>
+                  <th scope="col">Hour</th>
+                  <th scope="col">Status</th>
                 </tr>
-              {% else %}
-                <tr class="bg-success">
-                    <th> {{club_id}} </th>
-                    <th> {{court_number}} </th>
-                    <th scope="row">{{hour}}</th>
-                    <th scope="row">free</th>
-                </tr>
-              {% endif %}
-            {% endfor %}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {% for hour in range(8, 23) %}
+                  {% if hour in reservations %}
+                    <tr class="bg-danger">
+                        <th scope="row"> {{ court.court_number }} </th>
+                        <th scope="row"> {{ surface_name }} </th>
+                        <th scope="row"> {{ court.roof }} </th>
+                        <th scope="row"> {{ court.lights }} </th>
+                        <th scope="row"> {{ hour }} </th>
+                        <th scope="row"> taken </th>
+                    </tr>
+                  {% else %}
+                    <tr class="bg-success">
+                        <th scope="row"> {{ court.court_number }} </th>
+                        <th scope="row"> {{ surface_name }} </th>
+                        <th scope="row"> {{ court.roof }} </th>
+                        <th scope="row"> {{ court.lights }} </th>
+                        <th scope="row">{{hour}}</th>
+                        <th scope="row">free</th>
+                    </tr>
+                  {% endif %}
+                {% endfor %}
+                </tbody>
+          </table>
+        {% endfor %}
 
         {% if current_user.is_authenticated %}
         <form method="POST" action="">
@@ -102,16 +103,16 @@
                     {% endif %}
                 </div>
                 <div class="form-group">
-                    {{ reserve.club_id.label(class="form-control-label") }}
-                    {% if reserve.club_id.errors %}
-                        {{ reserve.club_id(class="form-control form-control-lg is-invalid") }}
+                    {{ reserve.club_name.label(class="form-control-label") }}
+                    {% if reserve.club_name.errors %}
+                        {{ reserve.club_name(class="form-control form-control-lg is-invalid") }}
                         <div class="invalid-feedback">
-                            {% for error in reserve.club_id.errors %}
+                            {% for error in reserve.club_name.errors %}
                                 <span>{{ error }}</span>
                             {% endfor %}
                         </div>
                     {% else %}
-                        {{ reserve.club_id(class="form-control form-control-lg") }}
+                        {{ reserve.club_name(class="form-control form-control-lg") }}
                     {% endif %}
                 </div>
                 <div class="form-group">

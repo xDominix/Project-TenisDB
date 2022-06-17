@@ -3,20 +3,16 @@ import secrets
 from datetime import datetime, time
 from PIL import Image
 from flask import render_template, url_for, flash, redirect, request
+from flask_login import login_user, current_user, logout_user, login_required
 from src.TennisApplication.forms import *
 from src.TennisApplication import app, db, bcrypt
 from src.TennisApplication.models import User, Tournament, Club, Reservation, Court
-from flask_login import login_user, current_user, logout_user, login_required
-from sqlalchemy import and_
+from src.TennisApplication.queries import *
 
 
 @app.route("/")
 @app.route("/home")
 def home():
-    def get_club_names():
-        club_name_rows = Club.query.with_entities(Club.name).all()
-        club_names = [row[0] for row in club_name_rows]
-        return club_names
     club_names = get_club_names()
     return render_template('home.html', club_names=club_names)
 
@@ -24,6 +20,15 @@ def home():
 @app.route("/about")
 def about():
     return render_template('about.html', title='About')
+
+
+@app.route("/cancel_reservation/<int:reservation_id>")
+@login_required
+def cancel_reservation(reservation_id):
+    Reservation.query.filter(Reservation.id == reservation_id).delete()
+    db.session.commit()
+    flash('Reservation cancelled successfully', 'success')
+    return redirect(url_for('home'))
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -45,7 +50,6 @@ def register():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     form = LoginForm()
@@ -111,55 +115,76 @@ def account():
     return render_template('account.html', title='Account', image_file=image_file, form=form)
 
 
+@app.route("/my_reservations", methods=['GET', 'POST'])
+@login_required
+def user_reservations():
+    active_reservations, past_reservations = get_user_reservations(current_user.id)
+    return render_template('user_reservations.html', title='My Reservations',
+                           active_reservations=active_reservations, past_reservations=past_reservations)
+
+
 @app.route("/reservation", methods=['GET', 'POST'])
 def reservation():
-
-    def get_court(club_id, court_number):
-        court = Court.query.filter(Court.club_id == club_id and Court.court_number == court_number).first()
-        return court
-
-    def get_reservations(date, court):
-        reservations = Reservation.query.filter(and_(Reservation.date_from >= date),
-                                                Reservation.court_id == court.id).all()
-        reservation_list = [list(range(reservation.date_from.hour, reservation.date_to.hour))
-                            for reservation in reservations]
-        flatten_list = [hours for reservation in reservation_list for hours in reservation]
-        return flatten_list
-
     form = FilterReservations()
     reserve = MakeReservation()
+    club_names = get_club_names()
+    surface_names = get_surface_names()
+    show = False
     if request.method == 'GET':
-        show = False
-        reservations = ()
-        club_id, date, court_number = None, None, None
+        reservation_date, club_name, surface_type, reservation.courts_reservations = None, None, None, None
     elif request.form.get('filter'):
         show = True
-        date = form.date.data
-        court_number = form.court_number.data
-        club_id = form.club_id.data
-        court = get_court(club_id, court_number)
-        reservations = get_reservations(date, court)
+        reservation_date = form.date.data
+        club_name = request.form.get('club_name')
+        surface_type = request.form.get('surface_name')
+        courts = get_courts_by_surface(club_name, surface_type)
+        reservations = get_reservations(reservation_date, courts)
+        courts_surface_names = get_courts_surface_names(courts)
+        reservation.courts_reservations = tuple(zip(courts, courts_surface_names, reservations))
     elif request.form.get('submit'):
+        valid_reservation = True
         show = True
-        date = reserve.date.data
+        reservation_date = reserve.date.data
         court_number = reserve.court_number.data
-        club_id = reserve.club_id.data
-        court = get_court(club_id, court_number)
-        reservations = get_reservations(date, court)
+        club_name = request.form.get('club_name')
+        court = get_court_by_number(club_name, court_number)
+        error_msg = 'Unable to commit reservation: '
+        if court:
+            reservations = get_reservation(reservation_date, court)
+        else:
+            valid_reservation = False
+            reservations = []
+            flash(error_msg + 'selected court is invalid', 'danger')
+        start_hour, end_hour = 8, 23
         available_hours = [hour not in reservations for hour in range(reserve.hour_from.data, reserve.hour_to.data)]
-        if False not in available_hours:
+
+        if reserve.hour_from.data < start_hour or reserve.hour_to.data > end_hour or \
+                reserve.hour_from.data >= reserve.hour_to.data:
+            flash(error_msg + 'invalid hours selected', 'danger')
+            valid_reservation = False
+        elif False in available_hours:
+            flash(error_msg + 'reservation for given datetime already made', 'danger')
+            valid_reservation = False
+        elif reserve.hour_from.data >= reserve.hour_to.data:
+            flash(error_msg + 'reservation for given datetime already made', 'danger')
+            valid_reservation = False
+
+        if valid_reservation:
             date_from = datetime.combine(reserve.date.data, time(reserve.hour_from.data))
             date_to = datetime.combine(reserve.date.data, time(reserve.hour_to.data))
+            if date_from <= datetime.now():
+                valid_reservation = False
+
+        if valid_reservation:
             new_reservation = Reservation(user_id=current_user.id, court_id=court.id, date_from=date_from,
                                           date_to=date_to)
             db.session.add(new_reservation)
             db.session.commit()
             flash('You committed reservation succesfully', 'success')
-            redirect(url_for('home'))
-        else:
-            flash('Unable to commit reservation', 'danger')
-    return render_template('reservation.html', title='Reservation', reservations=reservations, form=form, show=show,
-                           club_id=club_id, court_number=court_number, reserve=reserve)
+            return redirect(url_for('home'))
+
+    return render_template('reservation.html', title='Reservation', courts_reservations=reservation.courts_reservations,
+                           form=form, show=show, club_names=club_names, surface_names=surface_names, reserve=reserve)
 
 
 @app.route("/tournament", methods=['GET', 'POST'])

@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h3>Active Reservations</h3>
+          <table class="table">
+              <thead class="thead-dark mt-3">
+                <tr>
+                  <th scope="col">Club</th>
+                  <th scope="col">Court Number</th>
+                  <th scope="col">Date From</th>
+                  <th scope="col">Date to</th>
+                  <th scope="col">Cancel</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for reservation, court_number, club_name in active_reservations %}
+                    <tr class="bg-success">
+                        <th scope="row"> {{ club_name }} </th>
+                        <th scope="row"> {{ court_number }} </th>
+                        <th scope="row"> {{ reservation.date_from }} </th>
+                        <th scope="row"> {{ reservation.date_to }} </th>
+                        <th scope="row">
+                             <a href="{{ url_for('cancel_reservation', reservation_id=reservation.id) }}">Cancel</a>
+                        </th>
+                    </tr>
+                {% endfor %}
+                </tbody>
+          </table>
+
+    <h3>Past Reservations</h3>
+          <table class="table">
+              <thead class="thead-dark mt-3">
+                <tr>
+                  <th scope="col">Club</th>
+                  <th scope="col">Court Number</th>
+                  <th scope="col">Date From</th>
+                  <th scope="col">Date to</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for reservation, court_number, club_name in past_reservations %}
+                    <tr class="bg-danger">
+                        <th scope="row"> {{ club_name }} </th>
+                        <th scope="row"> {{ court_number }} </th>
+                        <th scope="row"> {{ reservation.date_from }} </th>
+                        <th scope="row"> {{ reservation.date_to }} </th>
+                    </tr>
+                {% endfor %}
+                </tbody>
+          </table>
+
+{% endblock content %}

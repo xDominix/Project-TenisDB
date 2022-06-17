@@ -88,8 +88,8 @@ class UpdateAccount(FlaskForm):
 
 class FilterReservations(FlaskForm):
     date = DateField('Date', format="%Y-%m-%d", validators=[DataRequired()])
-    club_id = StringField('Club id', validators=[DataRequired()])
-    court_number = IntegerField('Court number', validators=[DataRequired()])
+    club_name = StringField('Club Name', validators=[DataRequired()])
+    surface = StringField('Surface', validators=[DataRequired()])
     filter = SubmitField('Filter')
 
     def validate_date(self, birth_date):
@@ -99,7 +99,7 @@ class FilterReservations(FlaskForm):
 
 class MakeReservation(FlaskForm):
     date = DateField('Date', format="%Y-%m-%d", validators=[DataRequired()])
-    club_id = StringField('Club id', validators=[DataRequired()])
+    club_name = StringField('Club Name', validators=[DataRequired()])
     court_number = IntegerField('Court number', validators=[DataRequired()])
     hour_from = IntegerField('Hour from', validators=[DataRequired()])
     hour_to = IntegerField('Hour to', validators=[DataRequired()])
